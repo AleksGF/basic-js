@@ -13,9 +13,54 @@ const { NotImplementedError } = require('../extensions/index.js');
  * transform([1, 2, 3, '--discard-prev', 4, 5]) => [1, 2, 4, 5]
  * 
  */
-function transform(/* arr */) {
-  throw new NotImplementedError('Not implemented');
-  // remove line with error and write your code here
+function transform(arr) {
+  if (!(arr instanceof Array)) throw new Error("'arr' parameter must be an instance of the Array!");
+
+  const arrCopy = [...arr];
+  let i = 0;
+
+  const actions = {
+    '--discard-next': (i, arrCopy) => {
+      if (i < arrCopy.length - 1 && !Object.keys(actions).includes(arrCopy[i + 1])) {
+        arrCopy[i+1] = '--discarded';
+      }
+
+      return i;
+    },
+    '--discard-prev': (i, arrCopy) => {
+      if (i > 0 && !Object.keys(actions).includes(arrCopy[i - 1])) {
+        arrCopy[i - 1] = '--discarded';
+      }
+
+      return i;
+    },
+    '--double-next': (i, arrCopy) => {
+      if (i < arrCopy.length - 1 && !Object.keys(actions).includes(arrCopy[i + 1])) {
+        arrCopy.splice(i + 1, 0, arrCopy[i + 1]);
+        return i + 1;
+      }
+
+      return i;
+    },
+    '--double-prev': (i, arrCopy) => {
+      if (i > 0 && !Object.keys(actions).includes(arrCopy[i - 1])) {
+        arrCopy.splice(i - 1, 0, arrCopy[i - 1]);
+        return i + 1;
+      }
+
+      return i;
+    },
+    '--discarded': null,
+  };
+
+  while (i < arrCopy.length) {
+    if (Object.keys(actions).includes(arrCopy[i]) && arrCopy[i] !== '--discarded') {
+      i = actions[arrCopy[i]](i, arrCopy);
+    }
+    i++;
+  }
+
+  return arrCopy.filter(el => !Object.keys(actions).includes(el));
 }
 
 module.exports = {
